@@ -10,4 +10,7 @@
 
 ## Todo
 
-- gui?
+- gui manager?
+- ipfs로 내려받는데 실패할경우의 Plan B도 포함.
+    - 직접 다운로드 받을 수 있는 경로 자동 혹은 수동 안내 메세지
+- 공유중인 파일에 대한 정보를 담은 micro wiki server
