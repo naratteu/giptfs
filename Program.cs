@@ -3,6 +3,7 @@ using CliWrap.EventStream;
 using ConsoleAppFramework;
 using YamlDotNet.Serialization;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 await ConsoleApp.Create().RunAsync(args);
 [RegisterCommands]
 partial class Program
@@ -12,9 +13,40 @@ partial class Program
     /// 따라서 이 도구를 사용하기 위해선, 위의 두 명령줄 도구가 필요합니다.
     /// </summary>
     [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(Giptfs))]
-    [Command("")] public void Root() { }
+    [Command("")] public Task Root() => ConsoleApp.Create().RunAsync(["--help"]);
 
     record Giptfs { public required string ipfs, path; }
+
+    /// <summary>github를 위한 좀더 간편한 clone.</summary>
+    /// <param name="sourceUrl">github 저장소 url. 브랜치, 하위경로를 포함할 수 있습니다.</param>
+    public async Task Clone([Argument] string sourceUrl)
+    {
+        var g = git | (Console.WriteLine, Console.Error.WriteLine);
+        static void Cat(string url, object o) { Console.WriteLine(url); Console.WriteLine(o); }
+        static Task Run(Command c) { Console.WriteLine(c); return c.ExecuteAsync(); }
+        switch (0)
+        {
+            case 0 when Regex.Match(sourceUrl, @"^(https?://github.com/[^/]+/([^/]+))/(tree|blob)/([^/]+)/(.+)$") is
+            { Groups: [_, { Value: { } url }, { Value: { } repo }, _, { Value: { } branch }, { Value: { } sparse }] }:
+                Cat(url, new { repo, branch, sparse });
+                await Run(g.WithArguments(["clone", "--branch", branch, "--sparse", url, repo]));
+                await Run(g.WithArguments(["sparse-checkout", "set", sparse]).WithWorkingDirectory(repo));
+                break;
+            case 0 when Regex.Match(sourceUrl, @"^(https?://github.com/[^/]+/([^/]+))/(tree|blob)/([^/]+)$") is
+            { Groups: [_, { Value: { } url }, { Value: { } repo }, _, { Value: { } branch }] }:
+                Cat(url, new { repo, branch });
+                await Run(g.WithArguments(["clone", "--branch", branch, url, repo]));
+                break;
+            case 0 when Regex.Match(sourceUrl, @"^(https?://github.com/[^/]+/([^/]+))$") is
+            { Groups: [_, { Value: { } url }, { Value: { } repo }] }:
+                Cat(url, new { repo });
+                await Run(g.WithArguments(["clone", url, repo]));
+                break;
+            default:
+                Console.WriteLine("clone ignored : 깃허브url만 됩니당.");
+                break;
+        }
+    }
 
     /// <summary>git에서 관리하지 않는 파일을 IPFS에 추가하여 파일명과 해시를 조회합니다.</summary>
     public async Task Ls()
@@ -91,8 +123,8 @@ partial class Program
         await (ipfs.WithArguments(["pin", rm ? "rm" : "add", .. hashs]) | Console.WriteLine).ExecuteAsync();
     }
 
-    Command UntrackFiles() => Cli.Wrap("git").WithArguments("ls-files --others --exclude-standard");
-    readonly Command ipfs = new(nameof(ipfs));
+    Command UntrackFiles() => git.WithArguments("ls-files --others --exclude-standard");
+    readonly Command git = new(nameof(git)), ipfs = new(nameof(ipfs));
     Command GetIpfsHash(string file) => ipfs.WithArguments(["add", "-q", file]);
     Command GetIpfsFile(Giptfs file) => ipfs.WithArguments(["get", file.ipfs, "-o", file.path]);
 }
