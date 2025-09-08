@@ -24,3 +24,10 @@ dnx gip clone https://github.com/Cysharp/ConsoleAppFramework/tree/master/sandbox
 cd ConsoleAppFramework
 git sparse-checkout list # sandbox/CliFrameworkBenchmark
 ```
+
+## Todo
+
+- standalone
+- `npx gip clone`
+- `go run gip clone`
+- `uvx gip clone`
