@@ -94,6 +94,7 @@ partial class Program
     Command UntrackFiles() => git.WithArguments("ls-files --others --exclude-standard");
     readonly Command
         git = new(nameof(git)),
+        code = new(nameof(code)),
         ipfs = new(nameof(ipfs));
     Command GetIpfsHash(string file) => ipfs.WithArguments(["add", "-q", file]);
     Command GetIpfsFile(Giptfs file) => ipfs.WithArguments(["get", file.ipfs, "-o", file.path]);
