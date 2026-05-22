@@ -113,4 +113,5 @@ static class Exts
         => e.SelectWhen((T t, out TT tt) => (tt = conv(t)!) is not null);
     public static IAsyncEnumerable<T> CastNotNull<T>(this IAsyncEnumerable<object> e) where T : class
         => e.SelectNotNull(t => t as T);
+    public static Task Enter(this Command c) { Console.WriteLine(c); return c.ExecuteAsync(); }
 }
