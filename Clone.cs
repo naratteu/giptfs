@@ -17,7 +17,7 @@ partial class Program
         var g = git | (Console.WriteLine, Console.Error.WriteLine);
         string url, dir;
         void Cat(object o) { Console.WriteLine(new { url, dir }); Console.WriteLine(o); }
-        static Task Run(Command c) { Console.WriteLine(c); return c.ExecuteAsync(); }
+        static Task Run(Command c) => c.Enter();
         const string
             GH = "github.com",
             WGH = "www.github.com",
